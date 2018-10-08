@@ -1,0 +1,42 @@
+uemp=read.csv("fn.csv",sep="|",header=TRUE)
+
+##1948-01 is the format,  So we need to add  01 at the end. $ denotes the end of line in regex. 
+uemp$Month=str_replace(uemp$Month,"$","-01")
+## convert the string to date. 
+uemp$Month=as.Date(uemp$Month, "%Y-%m-%d") 
+## plot the data. 
+plot(uemp,type='l')
+
+uemp.ts=DataframeTS(uemp,12)
+
+uemp.ts=tsScale(uemp.ts)
+
+uemp.train=window(uemp.ts,start=1975,end=1981-.001)
+uemp.test=window(uemp.ts,start=1981)
+uemp.train
+uemp.test
+
+uemp.diff=diff(uemp.train)
+Acf(uemp.diff)
+Acf(uemp.diff,lag.max=72)
+pacf(uemp.diff,lag.max=72)
+
+uemp.diff=diff(uemp.diff,12,1)
+
+Acf(uemp.diff,lag.max=5)
+pacf(uemp.diff,lag.max=5)
+
+Acf(uemp.diff,lag.max=72)
+pacf(uemp.diff,lag.max=72)
+
+fit=arima(uemp.train, order=c(1,1,1),seasonal=c(1,1,1))
+
+res=residuals(fit)
+plot(res)
+hist(res)
+Box.test(res, lag=12, fitdf=6,type="L")
+fc=forecast(fit,h=12)
+plot(fc)
+lines(uemp.test)
+accuracy(fc,uemp.test)
+fit
